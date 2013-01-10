@@ -10,3 +10,7 @@
 *.lai
 *.la
 *.a
+
+# D build stuff
+bin
+*.sublime-*
