@@ -30,7 +30,7 @@ void main(string[] argv) {
 	uint outport=0;
 	uint inport=0;
 	string server="localhost";
-	string topic="/";
+	string topic="/main";
 	bool isServer=false;
 	getopt(argv,
 			"topic|t", &topic,

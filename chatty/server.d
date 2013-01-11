@@ -26,12 +26,21 @@ class Server : Device {
 		
 		this.sender = new Socket(ctx, Socket.Type.PUB);
 		this.sender.bind("tcp://*:%s".format(outport));
-		writefln("Port: %s\nInport: %s", outport, inport);
 	}
 
 	void run() {
-		auto dev = new ForwarderDevice(this.receiver, this.sender);
-		dev.run();
+		static if(0) {
+			auto dev = new ForwarderDevice(this.receiver, this.sender);
+			dev.run();
+		} else {
+			while(1) {
+				auto msg = this.receiver.recv_msg();
+				writeln(msg);
+				if(msg.msg.length) {
+					this.sender.send_msg(msg);
+				}
+			}
+		}
 	}
 
 }

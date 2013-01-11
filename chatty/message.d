@@ -1,6 +1,7 @@
 module chatty.message;
 
 import std.exception;
+import std.conv;
 
 import metus.dzmq.dzmq;
 import metus.dzmq.devices;
@@ -55,7 +56,7 @@ Message recv_msg(Socket sock, int flags=0) {
 	string[] raw = sock.recv_multipart(flags);
 	if(raw is null) return null;
 	// We can verify this, since the CHaTTY protocol requires it
-	enforce(raw.length == 3, "Invalid CHaTTY packet");
+	enforce(raw.length == 3, "Invalid CHaTTY packet: length = "~raw.length.to!string());
 	return new Message(raw[0], raw[1], raw[2]);
 }
 
