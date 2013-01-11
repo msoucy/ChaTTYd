@@ -1,6 +1,8 @@
 module chatty.client;
 
 import std.stdio;
+import std.process;
+import std.string;
 
 import chatty.message;
 
@@ -12,16 +14,18 @@ class Client : Device {
 	private {
 		Socket receiver, sender;
 		Context ctx;
+		string topic;
 	}
 
 	this(Context ctx) {
 		this.ctx=ctx;
 	}
 
-	void init(string server, string topic, uint inport, uint outport) {
+	void init(string server, string _topic, uint inport, uint outport) {
 		server = "tcp://%s:%%s".format(server);
-		if(!topic.length) topic="/";
-		if(topic[0] != '/') topic = '/'~topic;
+		if(!_topic.length) _topic="/";
+		if(_topic[0] != '/') _topic = '/'~_topic;
+		this.topic = _topic;
 	
 		this.sender = new Socket(ctx, Socket.Type.PUB);
 		this.sender.connect(server.format(outport));
@@ -33,12 +37,25 @@ class Client : Device {
 	}
 
 	void run() {
-
+		auto msg = new Message(this.topic, getenv("USER"), null);
 		while(1) {
 			try {
 				writef("> ");
-				this.sender.send(["/", readln()[0..$-1]]);
-				this.receiver.recv_multipart().writeln();
+				msg.msg = readln().strip();
+				if(msg.msg=="/quit") {
+					break;
+				} else if(msg.msg.length) {
+					this.sender.send_msg(msg);
+				}
+				Message rcv=null;
+				while(1) {
+					rcv = this.receiver.recv_msg(Socket.Flags.NOBLOCK);
+					if(rcv is null) {
+						break;
+					}
+					rcv.writeln();
+				}
+				
 			} catch(ZMQException e) {
 			}
 		}

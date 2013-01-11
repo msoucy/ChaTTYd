@@ -8,8 +8,9 @@ DOXYFILE=Doxyfile
 
 C_LIBS=-lncurses -lzmq
 D_LIBS=${addprefix -L, $(C_LIBS)}
-DFILES=${SRC_PREFIX}/chatty.d
-D_FLAGS=-property -wi -od"$(DOBJDIR)" $(D_LIBS) $(DFILES) -I"src"
+DMAIN=${SRC_PREFIX}/chatty.d
+DFILES=${wildcard chatty/*.d}
+D_FLAGS=-property -wi -od"$(DOBJDIR)" $(D_LIBS) $(DMAIN) -I"src"
 SRC_PREFIX=chatty
 DBLD=rdmd --build-only $(D_FLAGS)
 #DBLD=rdmd --build-only --dry-run $(D_FLAGS)

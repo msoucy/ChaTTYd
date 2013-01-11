@@ -19,8 +19,7 @@ enum SERV_PORT = 5670;
 enum CLNT_PORT = 5671;
 
 void printHelp() {
-	version(client) "Usage: ChaTTYd [-t topic] [-s server] [-p port] [-i inport]".writeln();
-	else version(server) "Usage: ChaTTYs [-p port] [-i inport]".writeln();
+	"Usage: ChaTTYd [-t topic] [-s server] [-p outport] [-i inport]".writeln();
 }
 
 /*
