@@ -8,10 +8,13 @@ import chatty.client;
 import std.stdio;
 import std.string;
 import std.getopt;
+import std.process;
 
 import std.c.stdlib : exit;
 
-import metus.dzmq.dzmq, metus.dzmq.devices;
+import metus.dzmq.dzmq;
+import metus.dzmq.devices;
+import metus.dncurses.dncurses;
 
 // Client-to-server connections
 enum SERV_PORT = 5670;
@@ -31,13 +34,17 @@ void main(string[] argv) {
 	uint inport=0;
 	string server="localhost";
 	string topic="/main";
+	string user=getenv("USER");
 	bool isServer=false;
+	bool verbose=false;
 	getopt(argv,
 			"topic|t", &topic,
 			"server|s", &server,
 			"port|p", &outport,
 			"inport|i", &inport,
-			"serve", &isServer);
+			"serve", &isServer,
+			"user|u", &user,
+			"verbose|v", &verbose);
 	if(argv.length!=1) {
 		printHelp();
 		exit(-1);
@@ -47,11 +54,17 @@ void main(string[] argv) {
 
 	if(isServer) {
 		auto s = new Server(ctx);
-		s.init(inport?inport:SERV_PORT, outport?outport:CLNT_PORT);
+		s.init(verbose, inport?inport:SERV_PORT, outport?outport:CLNT_PORT);
 		s.run();
 	} else {
+		initscr();
+		scope(exit) endwin();
+		initColor();
+		mode=Raw();
+		echo=false;
+
 		auto c = new Client(ctx);
-		c.init(server, topic, inport?inport:CLNT_PORT, outport?outport:SERV_PORT);
+		c.init(user, server, topic, inport?inport:CLNT_PORT, outport?outport:SERV_PORT);
 		c.run();
 	}
 	

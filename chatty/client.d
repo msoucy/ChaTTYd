@@ -1,7 +1,6 @@
 module chatty.client;
 
 import std.stdio;
-import std.process;
 import std.string;
 import std.ascii;
 import std.math;
@@ -22,9 +21,10 @@ class Client : Device {
 
 		string topic;
 		string currMsg="";
+		string user;
 		long msgPos=0;
 
-		Window inWin, outWin;
+		Window inWin, outWin, topicWin;
 		enum QUIT_STR = "/quit";
 	}
 
@@ -32,7 +32,8 @@ class Client : Device {
 		this.ctx=ctx;
 	}
 
-	void init(string server, string _topic, uint inport, uint outport) {
+	void init(string _user, string server, string _topic, uint inport, uint outport) {
+		this.user = _user;
 		server = "tcp://%s:%%s".format(server);
 		if(!_topic.length) _topic="/main";
 		if(!_topic.startsWith('/')) _topic = '/'~_topic;
@@ -44,6 +45,26 @@ class Client : Device {
 		this.receiver = new Socket(ctx, Socket.Type.SUB);
 		this.receiver.connect(server.format(inport));
 		this.receiver.subscribe(topic);
+
+		inWin = new Window(stdwin, 1, stdwin.max.x+1, stdwin.max.y, 0);
+		inWin.timeout=250;
+		inWin.keypad=true;
+		inWin.meta=true;
+		inWin.bkgd(bg(Color.BLUE));
+		inWin.clear();
+
+		topicWin = new Window(stdwin, 1, stdwin.max.x+1, stdwin.max.y-1, 0);
+		topicWin.bkgd(bg(Color.GREEN));
+		topicWin.clear();
+		
+		outWin = new Window(stdwin, stdwin.max.y-1, stdwin.max.x+1, 0, 0);
+		outWin.scrollok=true;
+		outWin.clear();
+
+		stdwin.refresh();
+		outWin.refresh();
+		topicWin.refresh();
+		inWin.refresh();
 	}
 
 	private void printMsg(Message msg) {
@@ -123,40 +144,15 @@ class Client : Device {
 	}
 
 	void run() {
-		initscr();
-		scope(exit) endwin();
-		initColor();
-		mode=Raw();
-		echo=false;
 
-		inWin = new Window(stdwin, 1, stdwin.max.x+1, stdwin.max.y, 0);
-		inWin.timeout=250;
-		inWin.keypad=true;
-		inWin.meta=true;
-		inWin.bkgd(bg(Color.BLUE));
-		inWin.clear();
-
-		auto topicWin = new Window(stdwin, 1, stdwin.max.x+1, stdwin.max.y-1, 0);
-		topicWin.bkgd(bg(Color.GREEN));
-		topicWin.clear();
-		
-		outWin = new Window(stdwin, stdwin.max.y-1, stdwin.max.x+1, 0, 0);
-		outWin.scrollok=true;
-		outWin.clear();
-
-		stdwin.refresh();
-		outWin.refresh();
-		topicWin.refresh();
-		inWin.refresh();
-
-		auto msg = new Message(this.topic, getenv("USER"), null);
 		topicWin.put(
-			"User: ", msg.user,
+			"User: ", this.user,
 			"\t",
-			"Topic: [", bold, topic, nobold, "]",
+			"Topic: [", bold, this.topic, nobold, "]",
 		);
 		topicWin.refresh();
 
+		auto msg = new Message(this.topic, this.user, null);
 		while(1) {
 			try {
 				msg.msg = read();
@@ -182,5 +178,6 @@ class Client : Device {
 				outWin.put("Communication error: ", e.msg, '\n');
 			}
 		}
+		
 	}
 }
