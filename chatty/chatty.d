@@ -29,7 +29,7 @@ void printHelp() {
 Architecture requires two PUB/SUB sockets
 */
 void main(string[] argv) {
-	
+
 	uint outport=0;
 	uint inport=0;
 	string server="localhost";
@@ -67,5 +67,5 @@ void main(string[] argv) {
 		c.init(user, server, topic, inport?inport:CLNT_PORT, outport?outport:SERV_PORT);
 		c.run();
 	}
-	
+
 }

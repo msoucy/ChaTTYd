@@ -38,13 +38,16 @@ class Client : Device {
 		if(!_topic.length) _topic="/main";
 		if(!_topic.startsWith('/')) _topic = '/'~_topic;
 		this.topic = _topic;
-	
+
 		this.sender = new Socket(ctx, Socket.Type.PUB);
 		this.sender.connect(server.format(outport));
 
 		this.receiver = new Socket(ctx, Socket.Type.SUB);
 		this.receiver.connect(server.format(inport));
-		this.receiver.subscribe(topic);
+		// Subscribe to all topics
+		foreach(top;_topic.encodeAllTopics()) {
+			this.receiver.subscribe(top);
+		}
 
 		inWin = new Window(stdwin, 1, stdwin.max.x+1, stdwin.max.y, 0);
 		inWin.timeout=250;
@@ -56,7 +59,7 @@ class Client : Device {
 		topicWin = new Window(stdwin, 1, stdwin.max.x+1, stdwin.max.y-1, 0);
 		topicWin.bkgd(bg(Color.GREEN));
 		topicWin.clear();
-		
+
 		outWin = new Window(stdwin, stdwin.max.y-1, stdwin.max.x+1, 0, 0);
 		outWin.scrollok=true;
 		outWin.clear();
@@ -152,14 +155,14 @@ class Client : Device {
 		);
 		topicWin.refresh();
 
-		auto msg = new Message(this.topic, this.user, null);
+		auto sndmsg = new Message(this.topic, this.user, null);
 		while(1) {
 			try {
-				msg.msg = read();
-				if(msg.msg==QUIT_STR) {
+				sndmsg.msg = read();
+				if(sndmsg.msg==QUIT_STR) {
 					break;
-				} else if(msg.msg !is null && msg.msg.length != 0) {
-					this.sender.send_msg(msg);
+				} else if(sndmsg.msg !is null && sndmsg.msg.length != 0) {
+					this.sender.send_msg(sndmsg);
 					currMsg.length=0;
 				}
 				Message rcv=null;
@@ -173,11 +176,11 @@ class Client : Device {
 				}
 				outWin.refresh();
 				inWin.refresh();
-				
+
 			} catch(ZMQException e) {
 				outWin.put("Communication error: ", e.msg, '\n');
 			}
 		}
-		
+
 	}
 }
