@@ -22,7 +22,7 @@ class Client : Device {
 		string topic;
 		string currMsg="";
 		string user;
-		long msgPos=0;
+		ulong msgPos=0;
 
 		Window inWin, outWin, topicWin;
 		enum QUIT_STR = "/quit";
